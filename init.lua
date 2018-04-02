@@ -1,34 +1,41 @@
-KEY = 1
+KEY = 6
 TMR_WIFI = 4
-gpio.mode(KEY,gpio.INPUT)
-print('Setting up WIFI...')
-tmr.delay(1000000)
+gpio.mode(KEY,gpio.INPUT,gpio.PULLUP)
+tmr.delay(10000)
 wifi_status = nil
 
 -------------
 -- wifi
 -------------
-file.open("WifiInfo.lua","r") 
+if file.open("WifiInfo.lua","r") then
 W={};       
 W.ssid=string.sub(file.readline(),1,-2);
 W.pwd=string.sub(file.readline(),1,-2);
 file.close();
 file.flush();
 wifi.sta.config(W)
+end
+wifi.sta.autoconnect(1)
 W.ssid = 'nodemcu'
 W.pwd = '12345678'
 wifi.ap.config(W)
 wifi.setmode(wifi.STATION)
-wifi.sta.autoconnect(1)
 
 --wifi hettpserver
 KEY_Status = gpio.read(KEY)
-if(KEY_Status == 1) then
+print(KEY_Status)
+if(KEY_Status == 0) then
 	wifi.setmode(wifi.STATIONAP)
 	dofile("httpServer.lua")
 	httpServer:listen(80)
 	httpServer:use('/config', function(req, res)
 		if req.query.ssid ~= nil and req.query.pwd ~= nil then
+            if file.open("WifiInfo.lua","w+") then
+            file.writeline(req.query.ssid)
+            file.writeline(req.query.pwd)
+            file.close();
+            file.flush();
+            end
             W.ssid = req.query.ssid
             W.pwd = req.query.pwd
 			wifi.sta.config(W)
@@ -63,5 +70,17 @@ if(KEY_Status == 1) then
 		end)
 	end)
 else
-	dofile("soil_humidity.lua")
+    wifi_wait = 0
+    tmr.alarm(1,1000,tmr.ALARM_AUTO,function()
+        --if (wifi.sta.getip() == nil) then
+            --wifi_wait = wifi_wait + 1
+            --if (wifi_wait > 10) then
+               --wifi_wait = 0
+            --end
+        --else
+            --tmr.stop(1)
+            --dofile("get_location.lua")
+       -- end
+       )
+
 end
