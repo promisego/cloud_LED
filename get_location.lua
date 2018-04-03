@@ -1,6 +1,7 @@
 --定义全局变量
 Http_result = nil
 Weather_result = nil
+Weather_content = nil
 string_result=""
 cityname_head = 0
 cityname_tail = 0
@@ -53,14 +54,14 @@ local function urlEncode(s)
 end  
 
 function Get_weather(city_name)
-    local url = 'https://query.yahooapis.com/v1/public/yql?q=select * from geo.placefinder where text="39.9919336,116.3404132" and gflags = "R"'
+    local url = 'http://samples.openweathermap.org/data/2.5/forecast/daily?id=524901&appid=b1b15e88fa797225412429c1c50c122a1'
     --url = url..'%E5%8D%97%E6%98%8C'
     --url = url..'%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys'
      http.get(url,nil,function(code,data)
         if(code>0) then
-            if(string.find(data,'Yahoo')) then
                 Weather_result = true
-            end
+                print(data)
+                Weaather_content = string.rep(data,1)
         end
         end)
 end
@@ -76,11 +77,12 @@ tmr.alarm(3,2000,tmr.ALARM_AUTO,function()
         str_city=string.sub(string_result,cityname_head,cityname_tail)
         print(str_city)
         collectgarbage()
-        tmr.alarm(2,5000,tmr.ALARM_AUTO,function()
+        tmr.alarm(2,10000,tmr.ALARM_AUTO,function()
             Get_weather(str_city)
             collectgarbage()
             if(Weather_result ~= nil) then
             print(Weather_result)
+            print(Weather_content)
             tmr.stop(2)
         end
         end)
