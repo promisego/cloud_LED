@@ -5,7 +5,7 @@ string_result=""
 cityname= nil
 str_city = ''
 --定义获取数据的函数
-local function urlEncode(s)  
+function urlEncode(s)  
      s = string.gsub(s, "([^%w%.%- ])", function(c) return string.format("%%%02X", string.byte(c)) end)  
     return string.gsub(s, " ", "+")  
 end 
@@ -26,13 +26,35 @@ function Extract_cityname(res)
             break
         end
    end
-   return head,tail
+   return string.sub(res,head,tail)
 end
 
 function Extract_json_cityname(res)
     local city_name = ''
     _, _, city_name = string.find(res,'"city":"([^"]+)",')
     return city_name
+end
+
+--unicode to utf8返回拆分的字符组用于生成urlcode
+function Unicode_utf8(res)
+    local utf = {}
+    utf[1] = bit.band(0x80,res%65)
+    utf[2] = bit.band(0x80,res%4097-res%65)
+    utf[3] = bit.band(0xe0,res/4097)
+    return utf
+end
+
+function To_urlcode(res)
+    local str = string.rep(res,1)
+    print(str)
+    --local str = Extract_json_cityname(res)
+    local code_arr = {}
+    local n = string.len(res)/5
+    for i = 0 , n-1 do
+        code_arr[i] = tonumber(string.sub(str, i*6+2,i*6+5),16)
+        print(code_arr[i])
+    end
+    print(code_arr)
 end
 
 function Get_ip()
@@ -86,13 +108,11 @@ end
 
 --调用函数
 tmr.alarm(2,2000,tmr.ALARM_AUTO,function()
-    local head,tail
     Get_location_city()
     if(Http_result ~= nil) then
         HTTP_result = nil
         tmr.stop(2)
         print(Extract_json_cityname(string_result))
-        --print(sjson.decode(string_result))
         collectgarbage()
         tmr.alarm(3,10000,tmr.ALARM_AUTO,function()
             Get_weather(str_city)
