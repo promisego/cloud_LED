@@ -22,8 +22,6 @@ wifi.ap.config(W)
 wifi.setmode(wifi.STATION)
 
 --wifi hettpserver
-KEY_Status = gpio.read(KEY)
-print(KEY_Status)
 if(KEY_Status == 0) then
 	wifi.setmode(wifi.STATIONAP)
 	dofile("httpServer.lua")
