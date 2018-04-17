@@ -94,23 +94,26 @@ function Get_weather()
 end
 
 --调用函数
-tmr.alarm(2,5000,tmr.ALARM_AUTO,function()
+tmr.register(2,2000,tmr.ALARM_AUTO,function()
     Get_location_city()
     if(Http_result ~= nil) then
         HTTP_result = nil
         tmr.stop(2)
-        tmr.alarm(3,5000,tmr.ALARM_AUTO,function()
+        tmr.unregister(2)
+        tmr.register(3,2000,tmr.ALARM_AUTO,function()
             Get_woeid(string_result)
             collectgarbage()
             if(HTTP_result ~= nil) then
                 HTTP_result = nil
                 tmr.stop(3)
-                tmr.alarm(4,2000,tmr.ALARM_AUTO,function()
+                tmr.unregister(3)
+                tmr.register(4,2000,tmr.ALARM_AUTO,function()
                     Get_weather()
                     if(HTTP_result ~= nil) then
                         tmr.stop(4)
+                        tmr.unregister(4)
                         HTTP_result = nil
-                        print(string_result)
+                        dofile("W2812.lua")
                     end
                 end)      
         end
