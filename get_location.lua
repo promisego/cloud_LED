@@ -2,6 +2,7 @@
 HTTP_result = nil
 Weather_content = nil
 string_result=""
+tmr_over = false
 cityname= nil
 str_city = ''
 APPID = "d1eb8e5e1993d169eefeffbcb9d73f6d"
@@ -60,7 +61,7 @@ function Get_location_city()
         HTTP_result = nil
         if (code > 0) then
             string_result = string.rep(data,1)
-            Http_result = true
+            HTTP_result = true
         end
         end)
 end
@@ -87,36 +88,45 @@ function Get_weather()
     http.get(url,nil,function(code,data)
         if(code>0) then
              print("GET Weather")
-             Http_result = true
-             string_result = data
+             HTTP_result = true
+             string_result = string.rep(data,1)
         end
         end)
 end
 
 --调用函数
-tmr.register(2,2000,tmr.ALARM_AUTO,function()
+HTTP_result = nil
+tmr.alarm(2,2000,tmr.ALARM_SEMI,function()
     Get_location_city()
-    if(Http_result ~= nil) then
+    if(HTTP_result ~= nil) then
         HTTP_result = nil
         tmr.stop(2)
         tmr.unregister(2)
-        tmr.register(3,2000,tmr.ALARM_AUTO,function()
+        tmr.alarm(3,2000,tmr.ALARM_SEMI,function()
             Get_woeid(string_result)
-            collectgarbage()
             if(HTTP_result ~= nil) then
                 HTTP_result = nil
                 tmr.stop(3)
                 tmr.unregister(3)
-                tmr.register(4,2000,tmr.ALARM_AUTO,function()
+                tmr.alarm(4,3000,tmr.ALARM_SEMI,function()
                     Get_weather()
                     if(HTTP_result ~= nil) then
-                        tmr.stop(4)
-                        tmr.unregister(4)
                         HTTP_result = nil
-                        dofile("W2812.lua")
+                        tmr.stop(4);
+                        tmr.unregister(4)
+                        collectgarbage()
+                        print("do file w2812")
+                        dofile("WS2812.lua")
+                    else
+                        tmr.start(4)
                     end
-                end)      
-        end
+                end)
+            else
+                tmr.start(3);      
+            end
         end)
+    else
+        tmr.start(2);
     end
-    end)
+end)
+
